@@ -1,0 +1,124 @@
+Imports System
+
+Namespace SampleSynthesis
+
+    Public Class clsSpeechSynthesizer
+        ' Initialize a New instance of the SpeechSynthesizer.
+        Private m_synth As System.Speech.Synthesis.SpeechSynthesizer = New System.Speech.Synthesis.SpeechSynthesizer
+
+        Public Property currentRate As Integer
+            Get
+                Return m_synth.Rate
+            End Get
+            Set(value As Integer)
+                m_synth.Rate = value
+            End Set
+        End Property
+
+        Public ReadOnly Property getState As Object
+            Get
+                Return m_synth.State
+            End Get
+        End Property
+        ' ---------------------------
+
+        Public Sub New()
+            ' Configure the audio output. 
+            m_synth.SetOutputToDefaultAudioDevice()
+        End Sub
+
+        Function _gender(ByVal strGender As String) As String
+            Dim myRet As String = String.Empty
+            If strGender > 2 Or strGender < 1 Then
+                MessageBox.Show("Error in _gender. strGender must be either 1 or 2. strGender was " & strGender)
+                myRet = "unknown"
+            End If
+            If strGender = 2 Then myRet = "female"
+            If strGender = 1 Then myRet = "male"
+            Return myRet
+        End Function
+
+        Public Function SelectVoice(ByVal synthName As String) As Boolean
+            Dim blnVoiceFound As Boolean = False
+            For Each voice In m_synth.GetInstalledVoices()
+                If voice.VoiceInfo.Name.Trim.ToLower = synthName.Trim.ToLower Then
+                    m_synth.SelectVoice(voice.VoiceInfo.Name)
+                    blnVoiceFound = True
+                End If
+            Next
+            If blnVoiceFound = False Then
+                MessageBox.Show("Error")
+                Debugger.Break()
+                Return False
+            End If
+            Return True
+        End Function
+
+        Public Function listVoices() As List(Of String)
+            ' Initialize a New instance of the SpeechSynthesizer.
+            Const d As String = " || "
+            'Dim AudioFormats As List(Of String) = New List(Of String)
+            Dim lname As List(Of String) = New List(Of String)
+            ' Output information about all of the installed voices.
+            For Each voice In m_synth.GetInstalledVoices()
+                Dim info = voice.VoiceInfo
+                'Dim strName As String = info.Name
+                lname.Add(voice.VoiceInfo.Name)
+                'Dim strID As String = info.Id
+                'Dim strDescription As String = info.Description
+                'Dim strGender As System.Speech.Synthesis.VoiceGender = info.Gender
+                'Dim intAge As System.Speech.Synthesis.VoiceAge = info.Age
+                'Dim ts As String = strName & d & strID & d & strDescription & d & _gender(strGender) & d & intAge & " years old"
+                'AudioFormats.Add(ts)
+            Next
+            'MessageBox.Show("There are " & AudioFormats.Count & " installed voices.")
+            'Return AudioFormats
+            Return lname
+        End Function
+
+        Public Function adjustRate(ByVal newRate As Integer) As Boolean
+            If newRate < -10 Or newRate > 10 Then
+                MessageBox.Show("This rate is illegal. Rate must be between -10 and 10.")
+                Return False
+            End If
+            ' states = Paused, Ready, Speaking
+            If Not m_synth.State.ToString = "Ready" Then
+                MessageBox.Show("The rate of speech can not be changed when the voice is either paused or speaking. Please wait until the voice has stopped and try again.")
+                Return False
+            Else
+                m_synth.Rate = newRate  ' (-10 to 10)
+            End If
+            Return True
+        End Function
+
+        Public Sub play(ByVal strText As String)
+            If strText.Trim.Length = 0 Then
+                MessageBox.Show("Error")
+                Debugger.Break()
+                Exit Sub
+            End If
+            Dim myPrompt As Speech.Synthesis.Prompt = New Speech.Synthesis.Prompt(strText)
+            Try
+                'm_synth.Speak(myPrompt)
+                m_synth.SpeakAsync(myPrompt)
+            Catch ex As Exception
+                MessageBox.Show(ex.Message)
+            End Try
+        End Sub
+
+        Public Sub pauseVoice()
+            m_synth.Pause()
+        End Sub
+
+        Public Sub resumeVoice()
+            m_synth.Resume()
+        End Sub
+
+        Public Sub stopVoice()
+            m_synth.SpeakAsyncCancelAll()
+        End Sub
+
+
+    End Class
+
+End Namespace
