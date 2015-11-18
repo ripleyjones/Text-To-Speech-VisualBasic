@@ -1,0 +1,85 @@
+Public Class frmMain
+    Dim voice As SampleSynthesis.clsSpeechSynthesizer = New SampleSynthesis.clsSpeechSynthesizer
+
+    Private Sub frmMain_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        'Me.TextBox1.Text = "Hello world."
+    End Sub
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        ' Create a prompt from a string.
+        Dim myText As String = Me.TextBox1.Text.Trim
+        If myText.Trim.Length = 0 Then
+            MessageBox.Show("Please enter some text.")
+            Exit Sub
+        End If
+        voice.play(myText)
+    End Sub
+
+    Private Sub FillGrid(ByRef dgv As DataGridView, ByVal myData As List(Of String))
+        dgv.DataSource = Nothing
+        Dim dt As DataTable = New DataTable
+        dt.Columns.Add("Name")
+
+        For Each myElem In myData
+            dt.Rows.Add(myElem)
+        Next
+
+        dgv.DataSource = dt
+        dgv.Columns(0).Width = 300
+    End Sub
+
+    Private Sub ViewNamesToolStripMenuItem_Click(sender As Object, e As EventArgs)
+        Dim mylist = voice.listVoices
+        FillGrid(Me.DataGridView1, mylist)
+    End Sub
+
+    ' Not using currently since Microsoft Anna was the only voice
+    ' I could find.
+    Private Sub PickVoice()
+        Dim mylist = voice.listVoices
+        If mylist.Count = 0 Then
+            MessageBox.Show("Error: No names were returned.")
+            Exit Sub
+        End If
+        ' Show the user the choices.
+        FillGrid(Me.DataGridView1, mylist)
+        Application.DoEvents()
+
+        Dim ui As String = InputBox("Please enter the name of the voice synthesizer you would like to use.", "Voice Synth", "")
+        If ui = "" Or ui = "exit" Or ui = "quit" Then
+            Exit Sub
+        End If
+        ' Select the voice.
+        voice.SelectVoice(ui)
+    End Sub
+
+    Private Sub btnClearText_Click(sender As Object, e As EventArgs) Handles btnClearText.Click
+        Me.TextBox1.Text = ""
+    End Sub
+
+    Private Sub btnPause_Click(sender As Object, e As EventArgs) Handles btnPause.Click
+        voice.pauseVoice()
+    End Sub
+
+    Private Sub btnStop_Click(sender As Object, e As EventArgs) Handles btnStop.Click
+        voice.stopVoice()
+    End Sub
+
+    Private Sub btnResume_Click(sender As Object, e As EventArgs) Handles btnResume.Click
+        voice.resumeVoice()
+    End Sub
+
+    Private Sub TrackBar1_Scroll(sender As Object, e As EventArgs) Handles TrackBar1.Scroll
+        Dim oldRate As Integer = CType(sender, TrackBar).Value
+        Me.TrackBar1.LargeChange = 5
+        Me.TrackBar1.SmallChange = 1
+        If voice.adjustRate(TrackBar1.Value) = False Then
+            TrackBar1.Value = oldRate
+        End If
+    End Sub
+
+    Private Sub frmMain_Click(sender As Object, e As EventArgs) Handles Me.Click
+        Dim myState = voice.getState()
+        Me.Text = "Current state of synth: " + myState.ToString
+    End Sub
+End Class
