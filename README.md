@@ -1,3 +1,2 @@
-# hello_world
-My first repository. Learning how to work on GetHub.
-This is another comment.
+# Text-To-Speech-VisualBasic
+This is a tiny program I threw together because I needed my computer to read text and I couldn't find another solution that fit the bill.
